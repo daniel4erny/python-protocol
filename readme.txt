@@ -1,0 +1,1 @@
+This repository is made for a fun project about making my own "protocol"
