@@ -19,8 +19,8 @@ def connection():
     while True: #keeping it runnin
         message = input("Send message: ") #interactive sending 
         s.send(message.encode()) #encoding the message from client to raw bytes
-        data = s.recv(1024) 
-        print("Server:", data.decode())
+        data = s.recv(1024) #recieving data from server max 1Kb
+        print("Server:", data.decode()) #printing response from server
 
 def main():
     ipConfig()
