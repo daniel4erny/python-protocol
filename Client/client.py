@@ -1,31 +1,66 @@
 # socket is a module for networking
 import socket
+import time
+import sys
+from colorama import Fore, Style, init
 
-def ipConfig(): #just info function, making sure everything works
+init(autoreset=True)  # automaticky resetuje barvy po každém výpisu
+
+
+def ipConfig():  # just info function, making sure everything works
     hostname = socket.gethostname()
-    print("Hostname:", hostname)
-    print("IP:", socket.gethostbyname(hostname))
+    print(Fore.CYAN + "Hostname:", Fore.WHITE + hostname)
+    print(Fore.CYAN + "IP:", Fore.WHITE + socket.gethostbyname(hostname))
 
-#setting the connect info variables and making socekt
-def setConnectInfo(): 
-    global host, port, s #setting variables global
-    host = "127.0.0.1" #(local only)
-    port = 5000 #server listens on port 5000
-    s = socket.socket() #creating default socket
 
-#function to connect to server
+# setting the connect info variables and making socket
+def setConnectInfo():
+    global host, port, s  # setting variables global
+    host = "127.0.0.1"  # (local only)
+    port = 5000  # server listens on port 5000
+    s = socket.socket()  # creating default socket
+    print(Fore.GREEN + f"[OK] Socket created. Connecting to {host}:{port}...")
+
+
+def sendPass():
+    password = input(Fore.YELLOW + "Type password: " + Style.RESET_ALL)
+    s.send(password.encode())
+    passStatus = s.recv(1024).decode()
+
+    if passStatus == "correct":
+        print(Fore.GREEN + "[ACCESS GRANTED] Correct password!")
+    else:
+        print(Fore.RED + "[ACCESS DENIED] Incorrect password. Script will terminate...")
+        time.sleep(3)
+        sys.exit()
+
+
+# function to connect to server
 def connection():
-    s.connect((host, port)) #connects the socket to the server
-    while True: #keeping it runnin
-        message = input("Send message: ") #interactive sending 
-        s.send(message.encode()) #encoding the message from client to raw bytes
-        data = s.recv(1024) #recieving data from server max 1Kb
-        print("Server:", data.decode()) #printing response from server
+    try:
+        s.connect((host, port))  # connects the socket to the server
+        print(Fore.GREEN + "[CONNECTED] Connected to server successfully!")
+    except ConnectionRefusedError:
+        print(Fore.RED + "[ERROR] Cannot connect to server. Make sure it is running.")
+        sys.exit()
+
+    sendPass()
+    while True:  # keeping it running
+        message = input(Fore.YELLOW + "Send message: " + Style.RESET_ALL)
+        if not message:
+            print(Fore.RED + "[INFO] Empty message, closing connection.")
+            s.close()
+            break
+        s.send(message.encode())  # encoding the message
+        data = s.recv(1024)  # receiving data from server max 1Kb
+        print(Fore.BLUE + "Server:", Style.RESET_ALL + data.decode())
+
 
 def main():
     ipConfig()
     setConnectInfo()
     connection()
+
 
 if __name__ == "__main__":
     main()

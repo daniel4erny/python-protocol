@@ -1,4 +1,5 @@
 import math
+import hashlib
 
 def sgn(x):
     try:
@@ -18,5 +19,8 @@ def sgn(x):
         return(f"kokot tupa tady mas error (debile) {e}")
         
 while True:
+    fuck = "heslo"
+    result = hashlib.md5(fuck.encode())
+    print(result.hexdigest())
     print(sgn(input("napiš čisličko")))
     
