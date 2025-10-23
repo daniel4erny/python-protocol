@@ -2,6 +2,7 @@
 import socket
 import hashlib
 import database
+import json
 from colorama import Fore, Style, init
 
 init(autoreset=True)  # automaticky resetuje barvy po každém výpisu
@@ -17,15 +18,15 @@ def initServer():
     s.bind((host, port)) #making socket listen on host and port
     s.listen(1) #server listens only onto one socket that is connected to it
     print(Fore.GREEN + "[✓] Server initiated!!!") #just info messages
-    print(Fore.YELLOW + str(s))
-    print(Fore.CYAN + f"HOST: {host}, PORT: {port}")
+    print(Fore.YELLOW + f"[i] {str(s)}")
+    print(Fore.CYAN + f"[i] HOST: {host}, PORT: {port}")
 
 
 #function for making client able to connect
 def clientConnect():
     global conn, addr #setting clients address and port as global variables
     conn, addr = s.accept() #accepting connection and storing the connection info
-    print(Fore.MAGENTA + f"Connected: {addr}") #info message
+    print(Fore.MAGENTA + f"[✓] Connected: {addr}") #info message
 
 
 def passwordCheck():
@@ -43,6 +44,8 @@ def passwordCheck():
         conn.close()  # odpojí klienta
         return False
 
+def handlePacket(packet):
+    
 
 #keeping server "alive"
 def aliveServer():
@@ -53,12 +56,19 @@ def aliveServer():
         else:
             print(Fore.GREEN + f"Client {addr} authenticated successfully!") 
         while True:
-            data = conn.recv(1024)
+            data = conn.recv(4096)
             if not data:
                 print(Fore.YELLOW + "Client disconnected")
                 break
-            print(Fore.BLUE + "Klient: " + Style.RESET_ALL + data.decode())
-            conn.send("Odpověď serveru".encode())
+            data = data.decode()
+            data = json.loads(data)
+            print(Fore.BLUE + f"Klient{addr}: " + Style.RESET_ALL + json.dumps(data))
+            try:
+                database.writeMsg(data["user"], data["text"])
+                print(Fore.LIGHTCYAN_EX + f"[✓] zpráva byla uložena do databáze")
+            except Exception as e:
+                print(Fore.RED + f"[x] and error occured {e}")
+            conn.send(f"zpráva ---{json.dumps(data)}--- byla přijata a uložena do databáze".encode())
 
 
 #main function 

@@ -2,11 +2,86 @@
 import socket
 import time
 import sys
+import json
+import os
 from colorama import Fore, Style, init
 
 init(autoreset=True)  # automaticky resetuje barvy po každém výpisu
 
+class Message:
+    def __init__(self, userName, text):
+        self.userName = userName
+        self.text = text
 
+    def toDict(self):
+        return {"user": self.userName, "text": self.text}
+    
+class Packet:
+    def __init__(self, method, messageFromUser):
+        self.method = method
+        self.messageFromUser = messageFromUser
+
+    def toDict(self):
+        return {"method": self.method, "message": self.messageFromUser}
+
+def clear():
+    # pro Windows
+    if os.name == 'nt':
+        os.system('cls')
+    # pro Linux/macOS
+    else:
+        os.system('clear')
+
+# MAKING PACKET TO SEND ------------------------------------------------------------------------------
+def setMethod():
+    print(Fore.CYAN + f"type [1] for writing into database")
+    print(Fore.CYAN + f"type [2] for fetching message")
+    userInput = input(Fore.CYAN + f"set method: ")
+    if int(userInput) == 1:
+        return("WRITE")
+    elif int(userInput) == 2:
+        return("GET")
+    else:
+        print(Fore.RED + f"[x] input 1 or 2!")
+        return setMethod()
+
+def makeMsg():
+    userNameInput = input(Fore.YELLOW + "Set your signature: ")    
+    textInput = input(Fore.YELLOW + "Type your message: ")
+    messageToSend = Message(userNameInput, textInput)
+    if not textInput.strip():
+        print(Fore.RED + "[x] you can't send empty message!")
+        return makeMsg()
+    else:
+        return messageToSend
+
+def getMsg():
+    idInput = input(Fore.YELLOW + f"type the id of message you want to receive: ")
+    if not idInput.strip():
+        print(Fore.RED + f"[x] you cant get message with empty ID!")
+        return getMsg()
+    else:
+        return idInput
+    
+def makePacket():
+    try:
+        method = setMethod()
+        clear()
+        if method == "GET":
+            packetToSend = Packet(method, getMsg())
+        elif method == "WRITE":
+            packetToSend = Packet(method, makeMsg().toDict())
+        else:
+            print(Fore.RED + "[x] making packet failed, try again")
+            time.sleep(1)
+            clear()
+            return makePacket()
+        packetToSend = json.dumps(packetToSend.toDict())
+        print(packetToSend)
+        return packetToSend
+    except Exception as e:
+        print(Fore.RED + f"[x] an error occured {e}")
+# ----------------------------------------------------------------------------------------------------
 def ipConfig():  # just info function, making sure everything works
     hostname = socket.gethostname()
     print(Fore.CYAN + "Hostname:", Fore.WHITE + hostname)
@@ -46,14 +121,17 @@ def connection():
 
     sendPass()
     while True:  # keeping it running
-        message = input(Fore.YELLOW + "Send message: " + Style.RESET_ALL)
-        if not message:
-            print(Fore.RED + "[INFO] Empty message, closing connection.")
-            s.close()
-            break
-        s.send(message.encode())  # encoding the message
-        data = s.recv(1024)  # receiving data from server max 1Kb
-        print(Fore.BLUE + "Server:", Style.RESET_ALL + data.decode())
+        packet = makePacket()
+        if not packet.strip():
+            print(Fore.RED + "[INFO] Empty packet, cannot send empty message")
+            time.sleep(1)
+            clear()
+            continue
+        else:
+            packet = json.dumps(packet.toDict())
+            s.send(packet.encode())  # encoding the message
+            data = s.recv(1024)  # receiving data from server max 1Kb
+            print(Fore.BLUE + "Server:", Style.RESET_ALL + data.decode())
 
 
 def main():
