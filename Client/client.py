@@ -128,7 +128,6 @@ def connection():
             clear()
             continue
         else:
-            packet = json.dumps(packet.toDict())
             s.send(packet.encode())  # encoding the message
             data = s.recv(1024)  # receiving data from server max 1Kb
             print(Fore.BLUE + "Server:", Style.RESET_ALL + data.decode())

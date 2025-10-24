@@ -32,14 +32,19 @@ def clientConnect():
 def handlePacket(packet):
     packet = packet.decode()
     packet = json.loads(packet)
+
     if packet["method"] == "WRITE":
-        database.writeMsg(packet["user"], packet["text"])
-        return f"Message from {packet['user']} saved."
+        msg = packet["message"]
+        database.writeMsg(msg["user"], msg["text"])
+        return f"Message from {msg['user']} saved."
+
     elif packet["method"] == "GET":
-        messages = database.getMsg(packet["id"])
+        messages = database.getMsg(packet["message"])
         return json.dumps(messages)
+
     else:
         return Fore.RED + "[x] Unknown method."
+
 
 
 
@@ -62,24 +67,23 @@ def passwordCheck():
 def aliveServer():
     while True:
         clientConnect()
-        if not passwordCheck():  # pokud špatné heslo
-            continue  # čeká na další klienta
+        if not passwordCheck():
+            continue
         else:
-            print(Fore.GREEN + f"Client {addr} authenticated successfully!") 
+            print(Fore.GREEN + f"Client {addr} authenticated successfully!")
+
         while True:
             packet = conn.recv(4096)
             if not packet:
                 print(Fore.YELLOW + "Client disconnected")
                 break
-            packet = packet.decode()
-            packet = json.loads(packet)
-            print(Fore.BLUE + f"Klient{addr}: " + Style.RESET_ALL + json.dumps(packet))
+
             try:
-                database.writeMsg(packet["user"], packet["text"])
-                print(Fore.LIGHTCYAN_EX + f"[✓] zpráva byla uložena do databáze")
+                response = handlePacket(packet)
+                conn.send(response.encode())
             except Exception as e:
-                print(Fore.RED + f"[x] and error occured {e}")
-            conn.send(f"zpráva ---{json.dumps(packet)}--- byla přijata a uložena do databáze".encode())
+                print(Fore.RED + f"[x] Error while handling packet: {e}")
+                conn.send(f"[x] Server error: {e}".encode())
 
 
 #main function 
