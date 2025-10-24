@@ -31,6 +31,7 @@ def clientConnect():
 # HANDLING THE PACKET ------------------
 def handlePacket(packet):
     packet = packet.decode()
+    
     packet = json.loads(packet)
 
     if packet["method"] == "WRITE":

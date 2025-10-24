@@ -48,6 +48,7 @@ def setMethod():
 def makeMsg():
     userNameInput = input(Fore.YELLOW + "Set your signature: ")    
     textInput = input(Fore.YELLOW + "Type your message: ")
+    passInput = input(Fore.YELLOW + "Press set password for the message (this will be needed to fetch it): ")
     messageToSend = Message(userNameInput, textInput)
     if not textInput.strip():
         print(Fore.RED + "[x] you can't send empty message!")
