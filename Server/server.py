@@ -28,6 +28,20 @@ def clientConnect():
     conn, addr = s.accept() #accepting connection and storing the connection info
     print(Fore.MAGENTA + f"[✓] Connected: {addr}") #info message
 
+# HANDLING THE PACKET ------------------
+def handlePacket(packet):
+    packet = packet.decode()
+    packet = json.loads(packet)
+    if packet["method"] == "WRITE":
+        database.writeMsg(packet["user"], packet["text"])
+        return f"Message from {packet['user']} saved."
+    elif packet["method"] == "GET":
+        messages = database.getMsg(packet["id"])
+        return json.dumps(messages)
+    else:
+        return Fore.RED + "[x] Unknown method."
+
+
 
 def passwordCheck():
     global password #setting password global
@@ -43,10 +57,7 @@ def passwordCheck():
         print(Fore.RED + f"[ACCESS DENIED] Client {addr} provided wrong password, disconnected.")
         conn.close()  # odpojí klienta
         return False
-
-def handlePacket(packet):
     
-
 #keeping server "alive"
 def aliveServer():
     while True:
@@ -56,19 +67,19 @@ def aliveServer():
         else:
             print(Fore.GREEN + f"Client {addr} authenticated successfully!") 
         while True:
-            data = conn.recv(4096)
-            if not data:
+            packet = conn.recv(4096)
+            if not packet:
                 print(Fore.YELLOW + "Client disconnected")
                 break
-            data = data.decode()
-            data = json.loads(data)
-            print(Fore.BLUE + f"Klient{addr}: " + Style.RESET_ALL + json.dumps(data))
+            packet = packet.decode()
+            packet = json.loads(packet)
+            print(Fore.BLUE + f"Klient{addr}: " + Style.RESET_ALL + json.dumps(packet))
             try:
-                database.writeMsg(data["user"], data["text"])
+                database.writeMsg(packet["user"], packet["text"])
                 print(Fore.LIGHTCYAN_EX + f"[✓] zpráva byla uložena do databáze")
             except Exception as e:
                 print(Fore.RED + f"[x] and error occured {e}")
-            conn.send(f"zpráva ---{json.dumps(data)}--- byla přijata a uložena do databáze".encode())
+            conn.send(f"zpráva ---{json.dumps(packet)}--- byla přijata a uložena do databáze".encode())
 
 
 #main function 
