@@ -30,7 +30,7 @@ def openDb():
 
 def writeMsg(userName, messageText, passwordText):
     try:
-        passwordText = hashlib.md5(passwordText).hexdigest()
+        passwordText = hashlib.md5(passwordText.encode()).hexdigest()
         cursor.execute("""
             INSERT INTO messages (user, text, password) 
             VALUES (?, ?, ?)
@@ -42,7 +42,7 @@ def writeMsg(userName, messageText, passwordText):
 
 def getMsg(notHashedPassword):
     try:
-        notHashedPassword = notHashedPassword.md
+        notHashedPassword = hashlib.md5(notHashedPassword.encode()).hexdigest()
         cursor.execute("""SELECT * FROM messages WHERE id = ?""", (notHashedPassword,))
         print(Fore.LIGHTYELLOW_EX + "[✓] db fetching message")
         return cursor.fetchall()
