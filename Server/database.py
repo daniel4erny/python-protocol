@@ -1,5 +1,6 @@
 import sqlite3, os
 from colorama import Fore, Style, init
+import hashlib
 
 init(autoreset=True)
 
@@ -16,6 +17,7 @@ def openDb():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user TEXT,
             text TEXT,
+            password TEXT,
             date DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         """)
@@ -26,21 +28,22 @@ def openDb():
         print(Fore.RED + "[x] an error ocurred while initiating the database")
         print(Fore.RED + f"{e}")
 
-def writeMsg(userName, messageText):
+def writeMsg(userName, messageText, passwordText):
     try:
+        passwordText = hashlib.md5(passwordText).hexdigest()
         cursor.execute("""
-            INSERT INTO messages (user, text) 
-            VALUES (?, ?)
-            """, (userName, messageText))
+            INSERT INTO messages (user, text, password) 
+            VALUES (?, ?, ?)
+            """, (userName, messageText, passwordText))
         coolDB.commit()
         print(Fore.LIGHTYELLOW_EX + f"[✓] zpráva uložena do DB s id {cursor.lastrowid}")
     except Exception as e:
         print(Fore.RED + f"[x] and error occured while saving the message {e}")
 
-def getMsg(idNum):
+def getMsg(notHashedPassword):
     try:
-        idNum = int(idNum)
-        cursor.execute("""SELECT * FROM messages WHERE id = ?""", (idNum,))
+        notHashedPassword = notHashedPassword.md
+        cursor.execute("""SELECT * FROM messages WHERE id = ?""", (notHashedPassword,))
         print(Fore.LIGHTYELLOW_EX + "[✓] db fetching message")
         return cursor.fetchall()
     except Exception as e:

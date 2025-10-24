@@ -36,7 +36,7 @@ def handlePacket(packet):
 
     if packet["method"] == "WRITE":
         msg = packet["message"]
-        database.writeMsg(msg["user"], msg["text"])
+        database.writeMsg(msg["user"], msg["text"], msg["password"])
         return f"Message from {msg['user']} saved."
 
     elif packet["method"] == "GET":
