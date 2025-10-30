@@ -43,7 +43,8 @@ def writeMsg(userName, messageText, passwordText):
 def getMsg(notHashedPassword):
     try:
         notHashedPassword = hashlib.md5(notHashedPassword.encode()).hexdigest()
-        cursor.execute("""SELECT * FROM messages WHERE id = ?""", (notHashedPassword,))
+        print(Fore.LIGHTYELLOW_EX + f"fetching with password{notHashedPassword}")
+        cursor.execute("""SELECT * FROM messages WHERE password = ?""", (notHashedPassword,))
         print(Fore.LIGHTYELLOW_EX + "[✓] db fetching message")
         return cursor.fetchall()
     except Exception as e:

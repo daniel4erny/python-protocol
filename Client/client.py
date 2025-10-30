@@ -66,7 +66,7 @@ def connection():
         else:
             s.send(packet.encode())  # encoding the message
             data = s.recv(1024)  # receiving data from server max 1Kb
-            print(Fore.BLUE + "Server:", Style.RESET_ALL + data.decode())
+            print(Fore.BLUE + "Server:", Style.RESET_ALL + str(json.loads(data.decode())))
 
 
 def main():

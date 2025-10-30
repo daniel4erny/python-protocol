@@ -41,7 +41,15 @@ def handlePacket(packet):
 
     elif packet["method"] == "GET":
         messages = database.getMsg(packet["message"])
-        return json.dumps(messages)
+        formatedMessages = []
+        for message in messages:
+            formatedMessages.append({
+                "id": message[0],
+                "user": message[1],
+                "text": message[2],
+                "date": message[4]
+            })
+        return json.dumps(formatedMessages)
 
     else:
         return Fore.RED + "[x] Unknown method."
@@ -76,7 +84,7 @@ def aliveServer():
         while True:
             packet = conn.recv(4096)
             if not packet:
-                print(Fore.YELLOW + "Client disconnected")
+                print(Fore.YELLOW + f"Client {addr} disconnected")
                 break
 
             try:
