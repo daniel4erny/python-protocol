@@ -1,0 +1,16 @@
+body{
+    background: linear-gradient(pink, red);
+}
+
+.bilaAf{
+    color: black;
+    background-color: pink;
+}
+
+.podtrhnuto{
+    text-decoration: underline;
+}
+
+.cernaAf{
+    color:black;
+}
