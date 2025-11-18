@@ -1,6 +1,7 @@
 import socket
 import ssl
 import colorama
+from api.idk import handle_reponse
 
 # colorama
 RED = colorama.Fore.RED
@@ -10,8 +11,10 @@ YELLOW = colorama.Fore.YELLOW
 
 hostname = "localhost"
 port = 8443
-index = "index.html"
-styles = "styles.css"
+index = r"client/index.html"
+styles = r"client/styles.css"
+javascript = r"client/main.js"
+ezop = r"client/ezop.jpg"
 
 cert_path = "cert.pem"
 key_path = "key.pem"
@@ -33,7 +36,7 @@ def make_response(request):
     first_line = request.splitlines()[0]
     parts = first_line.split(" ")
 
-    path = parts[1] if len(parts) >= 2 else "/"
+    path = parts[1].strip() if len(parts) >= 2 else "/"
     if ".." in path:
         path = "/"
 
@@ -46,9 +49,24 @@ def make_response(request):
             with open(styles, "rb") as f:
                 body = f.read()
             return raw_response("text/css", body)
-        case _:  # fallback
+        case "/ezop.jpg":
+            with open(ezop, "rb") as f:
+                body = f.read()
+            return raw_response("image/jpeg", body)
+        case "/main.js":
+            with open(javascript, "rb") as f:
+                body = f.read()
+            return raw_response("text/javascript", body)
+        case "/api/idk":
+            unparsedBody = handle_reponse()
+            body = unparsedBody.encode()
+            return raw_response("text/plain", body)
+        case _:
             body = b"404 Not Found"
             return raw_response("text/plain", body)
+
+
+
             
 
 
@@ -65,16 +83,26 @@ def connection():
 
                 response = make_response(data)
 
+                # --- ZMĚNA ZDE ---
+                
+                # Oddělíme hlavičky od těla binární odpovědi
+                headers, body_bin = response.split(b"\r\n\r\n", 1)
+                
+                # Vytiskneme hlavičky (jako text) a informaci o těle (jako délku)
                 print("\r")
                 print("\r")
                 print(YELLOW + "-------------------------- START OF RESPONSE -----------------------")
-                print(BLUE + response.decode("utf-8"))
+                print(BLUE + headers.decode("utf-8")) # Tiskneme pouze hlavičky
+                print(BLUE + f"(Binární tělo o délce: {len(body_bin)} bajtů)")
                 print(YELLOW + "-------------------------- END OF RESPONSE -----------------------")
-
-                ss.sendall(response)
+                
+                # --- ODESÍLÁNÍ ZŮSTÁVÁ SPRÁVNÉ ---
+                ss.sendall(response) # Odeslání celé binární odpovědi
                 ss.close()
 
         except Exception as e:
+            # Vaše původní chybová hláška SSL byla způsobena nedokončeným požadavkem/odpovědí.
+            # Po této opravě by měla být stabilnější.
             print(RED + f"{e}")
 
 connection()

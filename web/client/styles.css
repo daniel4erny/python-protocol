@@ -1,0 +1,28 @@
+body{
+    background: linear-gradient(purple, blue);
+}
+
+.bilaAf{
+    color: black;
+    background-color: pink;
+}
+
+.podtrhnuto{
+    text-decoration: underline;
+}
+
+.cernaAf{
+    color:black;
+    background-color: lightblue;
+}
+
+.svastika{
+    width: 25%;
+}
+
+.flexContainer{
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
