@@ -1,7 +1,7 @@
 import socket
 import ssl
 import colorama
-from api.idk import handle_reponse
+from api.idk import handle_reponse_idk
 
 # colorama
 RED = colorama.Fore.RED
@@ -58,7 +58,7 @@ def make_response(request):
                 body = f.read()
             return raw_response("text/javascript", body)
         case "/api/idk":
-            unparsedBody = handle_reponse()
+            unparsedBody = handle_reponse_idk(request)
             body = unparsedBody.encode()
             return raw_response("text/plain", body)
         case _:
