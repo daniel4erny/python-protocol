@@ -1,5 +1,4 @@
-console.log("loaded properly !!!!")
-
+//idk lol, just wanted to make react like use state 
 function useState(id, value){
     elements = document.querySelectorAll(id)
     for (i = 0; i < elements.length; i++){
@@ -7,6 +6,7 @@ function useState(id, value){
     }
 }
 
+//this will probably be deleted
 function testik() {
     fetch("https://localhost:8443/api/idk", {
         method: "POST",
@@ -25,6 +25,7 @@ function testik() {
         .catch(err => console.error(err));
 }
 
+//this will probably be deleted too duh >w<
 function testik2() {
     fetch("https://localhost:8443/api/idk", {
         method: "GET",
