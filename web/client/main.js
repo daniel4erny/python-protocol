@@ -27,13 +27,15 @@ function testik() {
 
 //this will probably be deleted too duh >w<
 function testik2() {
-    fetch("https://localhost:8443/api/idk", {
-        method: "GET",
+    const id = document.getElementById("idInput").value;
+
+    fetch(`https://localhost:8443/api/idk?id=${encodeURIComponent(id)}`, {
+        method: "GET"
     })
         .then(response => response.text())
         .then(text => {
             console.log("Response:", text);
-            useState("#response", text)
+            useState("#response", text);
         })
         .catch(err => console.error(err));
 }

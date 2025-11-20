@@ -55,6 +55,12 @@ def make_response(request):
     if ".." in path:
         path = "/"
 
+    #Here we split path and query string, only if ? is present
+    if "?" in path:
+        path, query_string = path.split("?", 1)
+    else:
+        query_string = ""
+
     #here we have a switch statement, with each path returning something else, if the path isnt found, it returns 404 error
     match path:
         #files responses
@@ -76,7 +82,7 @@ def make_response(request):
             return raw_response("text/javascript", body)
         #API responses
         case "/api/idk": 
-            unparsedBody = handle_reponse_idk(request)
+            unparsedBody = handle_reponse_idk(request, query_string)
             body = unparsedBody.encode()
             return raw_response("text/plain", body)
         #if not found

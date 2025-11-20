@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS zpravicky(
     except Exception as e:
         print(RED + str(e))
 
-
 #write message writes the message to db duh >w<
 def writeMessage(message, conn):
     try:
@@ -47,3 +46,16 @@ VALUES (?)
         print(BARVICKA + f"{message} was sent with id: {cursor.lastrowid}")
     except Exception as e:
         print(RED + str(e))
+
+#This gets the message with id passed as argument
+def getMessage(idUnparsed, conn):
+    try:
+        idParsed = int(idUnparsed)
+        cursor = conn.cursor()
+        cursor.execute("""
+SELECT * FROM zpravicky WHERE id = ?
+""", (idParsed,))
+        return str(cursor.fetchall())
+    except Exception as e:
+        print(RED + e)
+

@@ -19,11 +19,24 @@ body{
 
 .svastika{
     width: 25%;
+    padding: 20px;
+}
+
+.flexContainer2{
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.flexContainerCol{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: auto;
 }
 
 .flexContainer{
     display: flex;
     gap: 20px;
-    justify-content: center;
-    align-items: center;
 }
