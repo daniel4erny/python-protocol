@@ -9,3 +9,8 @@ I am using SQLite
 The "Test" folder, is a folder for testing (mainly making ui)
 
 "web" folder is for making my own https server from scratch
+
+738 lines rn
+
+just to be clear, this project is mainly for myself, but here you can see all the low level things I can build
+without frameworks
