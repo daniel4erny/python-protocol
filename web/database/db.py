@@ -59,3 +59,13 @@ SELECT * FROM zpravicky WHERE id = ?
     except Exception as e:
         print(RED + e)
 
+#This functions gets all messages
+def getAllMessagesDB(conn):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+SELECT * FROM zpravicky
+""")
+        return str(cursor.fetchall())
+    except Exception as e:
+        print(RED + e)

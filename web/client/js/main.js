@@ -1,3 +1,5 @@
+msgList = []
+
 //idk lol, just wanted to make react like use state 
 function useState(id, value){
     elements = document.querySelectorAll(id)
@@ -39,3 +41,38 @@ function testik2() {
         })
         .catch(err => console.error(err));
 }
+
+//fetching at endpoint "getAllMessages"
+function getMSGS() {
+    fetch(`https://localhost:8443/api/getAllMessages`, {
+        method: "GET"
+    })
+    .then(response => response.text())
+    .then(text => {
+        // text je Pythonový seznam ve stringu
+        // např. [(1, '{"text":"nevim bro"}', '2025-11-19 17:05:38'), ...]
+        
+        // regex pro jednotlivé trojice
+        const regex = /\(\s*(\d+),\s*'({.*?})',\s*'([^']*)'\s*\)/g;
+        let match;
+        msgList = [];
+
+        while ((match = regex.exec(text)) !== null) {
+            const id = parseInt(match[1]);
+            const jsonStr = match[2];
+            const timestamp = match[3];
+
+            try {
+                const obj = JSON.parse(jsonStr);
+                msgList.push({ id, ...obj, timestamp });
+            } catch (e) {
+                console.error("Chybný JSON:", jsonStr, e);
+            }
+        }
+
+        console.log(msgList);
+    })
+    .catch(err => console.error(err));
+}
+
+

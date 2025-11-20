@@ -1,7 +1,8 @@
 import socket
 import ssl
 import colorama
-from api.idk import handle_reponse_idk #this import is the first api
+from api.idk import handle_reponse_idk
+from api.getAllMessages import getAllMessages
 
 #------------------------------------INIT------------------------------------
 
@@ -16,11 +17,11 @@ hostname = "localhost"
 port = 8443
 
 #paths needed for HTML site itself
-index = r"client/index.html"
-board = r"client/board.html"
-styles = r"client/styles.css"
-javascript = r"client/main.js"
-ezop = r"client/ezop.jpg"
+index = r"client/html/index.html"
+board = r"client/html/board.html"
+styles = r"client/css/styles.css"
+javascript = r"client/js/main.js"
+ezop = r"client/images/ezop.jpg"
 
 #paths needed for tls crypting
 cert_path = r"cert.pem"
@@ -63,7 +64,7 @@ def make_response(request):
         query_string = ""
 
     #here we have a switch statement, with each path returning something else, if the path isnt found, it returns 404 error
-    match path:
+    match path.strip():
         #files responses
         case "/": #the index return
             with open(index, "rb") as f:
@@ -86,8 +87,12 @@ def make_response(request):
                 body = f.read()
             return raw_response("text/javascript", body)
         #API responses
-        case "/api/idk": 
+        case "/api/idk": #just testing, mainly serves as a prototype for other api
             unparsedBody = handle_reponse_idk(request, query_string)
+            body = unparsedBody.encode()
+            return raw_response("text/plain", body)
+        case "/api/getAllMessages":
+            unparsedBody = getAllMessages(request)
             body = unparsedBody.encode()
             return raw_response("text/plain", body)
         #if not found
