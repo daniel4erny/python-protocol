@@ -40,3 +40,10 @@ body{
     display: flex;
     gap: 20px;
 }
+
+.boardLink{
+    margin: 5%;
+    color:brown;
+    background-color: antiquewhite;
+    font-size: larger;
+}

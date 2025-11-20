@@ -17,6 +17,7 @@ port = 8443
 
 #paths needed for HTML site itself
 index = r"client/index.html"
+board = r"client/board.html"
 styles = r"client/styles.css"
 javascript = r"client/main.js"
 ezop = r"client/ezop.jpg"
@@ -66,6 +67,10 @@ def make_response(request):
         #files responses
         case "/": #the index return
             with open(index, "rb") as f:
+                body = f.read()
+            return raw_response("text/html", body)
+        case "/board.html":
+            with open(board, "rb") as f:
                 body = f.read()
             return raw_response("text/html", body)
         case "/styles.css": #styles return

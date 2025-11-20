@@ -1,5 +1,6 @@
 from database.db import *
 
+#This API mainly serves as a 
 #this is where the request is firstly passed, passes is into other functions based on the method of the request
 def handle_reponse_idk(request, query_string):
     first_line = request.splitlines()[0]
