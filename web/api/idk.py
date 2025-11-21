@@ -17,7 +17,13 @@ def handle_reponse_idk(request, query_string):
 def handle_get(request, query_string):
     idNumber = str(query_string).replace("id=", "")
     if idNumber.isdigit():
-        return getMessage(idNumber, openDB())
+        message = getMessage(idNumber, openDB())
+        if str(message).strip("[]"):
+            return str(message).strip("[]")
+        if str(message).strip("[]") == "":
+            return f"nah bro, unlucky id {idNumber} too big lol"
+        else:
+            return "okey, idk how you did that, very nice"
     else:
         return f"u fucking dumb or something ? {query_string}"
 

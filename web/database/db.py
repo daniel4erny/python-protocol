@@ -64,8 +64,11 @@ def getAllMessagesDB(conn):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-SELECT * FROM zpravicky
-""")
+            SELECT * FROM zpravicky
+            ORDER BY id DESC
+            LIMIT 10
+        """)
         return str(cursor.fetchall())
     except Exception as e:
-        print(RED + e)
+        print(RED + str(e))
+

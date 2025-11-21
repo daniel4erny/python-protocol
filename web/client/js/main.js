@@ -70,9 +70,22 @@ function getMSGS() {
             }
         }
 
-        console.log(msgList);
+        console.log(msgList[1]);
+        renderMSGS(msgList)
     })
     .catch(err => console.error(err));
 }
 
-
+function renderMSGS(msgList){
+    const mother = document.getElementById("messageShower")
+    for (let i = 0; i < msgList.length; i++){
+        let div = document.createElement("div");
+        div.className = "msgContainer";
+        div.innerHTML = `
+        <p class="msgPart">${msgList[i].id}</p>
+        <p class="msgPart">${msgList[i].text}</p>
+        <p class="msgPart">${msgList[i].timestamp}</p>`
+        mother.appendChild(div)
+    }
+    console.log("doneeee")
+}
