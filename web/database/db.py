@@ -1,24 +1,17 @@
 import sqlite3
 from dotenv import load_dotenv
 import os
-import colorama
+from utils.logger import console
 
 # INIT
-
-#colorama
-BARVICKA = colorama.Fore.LIGHTYELLOW_EX
-RED = colorama.Fore.RED
-
-#.env db path
 load_dotenv()
 db_path = os.getenv("DATABASE_PATH")
-print(db_path)
 
 #openDB initializes database returns connection to work work on API files
 def openDB():
     try:
         conn = sqlite3.connect(db_path)
-        print(BARVICKA + "DB WORKS EZ PZ")
+        # console.print("[dim]DB connected[/]") # Optional: reduce noise
 
         cursor = conn.cursor()
         cursor.execute("""
@@ -31,7 +24,7 @@ CREATE TABLE IF NOT EXISTS zpravicky(
 
         return conn
     except Exception as e:
-        print(RED + str(e))
+        console.print(f"[bold red]DB Error:[/] {e}")
 
 #write message writes the message to db duh >w<
 def writeMessage(message, conn):
@@ -43,9 +36,9 @@ VALUES (?)
 """, (message,))
         conn.commit()
 
-        print(BARVICKA + f"{message} was sent with id: {cursor.lastrowid}")
+        console.print(f"[green]DB Insert:[/] {message} (ID: {cursor.lastrowid})")
     except Exception as e:
-        print(RED + str(e))
+        console.print(f"[bold red]DB Error:[/] {e}")
 
 #This gets the message with id passed as argument
 def getMessage(idUnparsed, conn):
@@ -57,7 +50,7 @@ SELECT * FROM zpravicky WHERE id = ?
 """, (idParsed,))
         return str(cursor.fetchall())
     except Exception as e:
-        print(RED + e)
+        console.print(f"[bold red]DB Error:[/] {e}")
 
 #This functions gets all messages
 def getAllMessagesDB(conn):
@@ -70,5 +63,4 @@ def getAllMessagesDB(conn):
         """)
         return str(cursor.fetchall())
     except Exception as e:
-        print(RED + str(e))
-
+        console.print(f"[bold red]DB Error:[/] {e}")

@@ -1,4 +1,6 @@
 msgList = []
+chat_msgList = []
+
 
 //idk lol, just wanted to make react like use state 
 function useState(id, value) {
@@ -88,4 +90,45 @@ function renderMSGS(msgList) {
         mother.appendChild(div)
     }
     console.log("doneeee")
+}
+
+// CHAT FUNCTIONS-----------------------------------------
+function connectStream() {
+    const eventSource = new EventSource("/api/stream");
+    eventSource.onmessage = function (event) {
+        const msg = JSON.parse(event.data);
+        chat_msgList.push(msg);
+        renderChatMSGS(chat_msgList)
+    }
+}
+
+function renderChatMSGS(msgList) {
+    const mother = document.getElementById("messageShower")
+    for (let i = 0; i < msgList.length; i++) {
+        let div = document.createElement("div");
+        div.className = "msgContainer";
+        div.innerHTML = `
+        <p class="msgPart">${msgList[i]}</p>`
+        mother.appendChild(div)
+    }
+    console.log("doneeee")
+}
+
+function sendMessage() {
+    const message = document.getElementById("message").value;
+    fetch("/api/sendMessage", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            text: message
+        })
+    })
+        .then(response => response.text())
+        .then(text => {
+            console.log("Response:", text);
+            renderChatMSGS(chat_msgList)
+        })
+        .catch(err => console.error(err));
 }

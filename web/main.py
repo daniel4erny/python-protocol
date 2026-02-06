@@ -1,37 +1,39 @@
 import socket
 import ssl
-import colorama
 from api.idk import handle_reponse_idk
 from api.getAllMessages import getAllMessages
+from api.stream import handle_stream_request
+from api.sendMessage import handle_send_message
 import os
 from dotenv import load_dotenv
+from utils.logger import console, log, log_request, log_response
+from rich.panel import Panel
+from rich.text import Text
 
 load_dotenv()
 
 #------------------------------------INIT------------------------------------
 
-# colorama init
-RED = colorama.Fore.RED
-GREEN = colorama.Fore.GREEN
-BLUE = colorama.Fore.LIGHTBLUE_EX
-YELLOW = colorama.Fore.YELLOW
-
 #host and port config
 hostname = "0.0.0.0"
 port = 8443
 
-#paths needed for HTML site itself
+#paths
 index = r"client/html/index.html"
 board = r"client/html/board.html"
 styles = r"client/css/styles.css"
+chat = r"client/html/chat.html"
 javascript = r"client/js/main.js"
 ezop = r"client/images/ezop.jpg"
+
+#memory of the chat
+message_list = []
 
 #paths needed for tls crypting
 cert_path = os.getenv("CERT_PATH")
 key_path = os.getenv("KEY_PATH")
 
-#loading ssl context, we will wrap socket with this after
+#loading ssl context
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(cert_path, key_path)
 
@@ -39,59 +41,54 @@ context.load_cert_chain(cert_path, key_path)
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((hostname, port))
 s.listen(5)
-print(GREEN + "----------- socket is listening -----------")
+console.print(Panel(Text("server is listening on https://localhost:8443", style="bold green"), title="Server Status"))
 
 #------------------------------------FUNCTIONS------------------------------------
 
-#this functions returns the formated http packet, you have to pass type of the request and body
 def raw_response(type_str, body):
     response = b"HTTP/1.1 200 OK\r\n" \
                b"Content-Type: " + type_str.encode('utf-8') + b"\r\n" \
                b"Content-Length: " + str(len(body)).encode('utf-8') + b"\r\n\r\n" + body
     return response
 
-#This function handles the request and returns response to it (via previous function), the return is based on the path in request
-def make_response(request):
-    #here it extracts the first line
+def make_response(request, ss, addr):
     first_line = request.splitlines()[0]
     parts = first_line.split(" ")
-
-    #if parts doesnt have at least two elements we will make the index return and checks for malicous activity trying to get higher in the working directory
+    method = parts[0]
+    
     path = parts[1].strip() if len(parts) >= 2 else "/"
     if ".." in path:
         path = "/"
 
-    #Here we split path and query string, only if ? is present
     if "?" in path:
         path, query_string = path.split("?", 1)
     else:
         query_string = ""
+    
+    log_request(method, path, addr)
 
-    #here we have a switch statement, with each path returning something else, if the path isnt found, it returns 404 error
     match path.strip():
         #files responses
-        case "/": #the index return
-            with open(index, "rb") as f:
-                body = f.read()
+        case "/":
+            with open(index, "rb") as f: body = f.read()
             return raw_response("text/html", body)
         case "/board.html":
-            with open(board, "rb") as f:
-                body = f.read()
+            with open(board, "rb") as f: body = f.read()
             return raw_response("text/html", body)
-        case "/styles.css": #styles return
-            with open(styles, "rb") as f:
-                body = f.read()
+        case "/chat.html":
+            with open(chat, "rb") as f: body = f.read()
+            return raw_response("text/html", body)
+        case "/styles.css":
+            with open(styles, "rb") as f: body = f.read()
             return raw_response("text/css", body)
-        case "/ezop.jpg": #image return
-            with open(ezop, "rb") as f:
-                body = f.read()
+        case "/ezop.jpg":
+            with open(ezop, "rb") as f: body = f.read()
             return raw_response("image/jpeg", body)
-        case "/main.js": #js file return
-            with open(javascript, "rb") as f:
-                body = f.read()
+        case "/main.js":
+            with open(javascript, "rb") as f: body = f.read()
             return raw_response("text/javascript", body)
         #API responses
-        case "/api/idk": #just testing, mainly serves as a prototype for other api
+        case "/api/idk":
             unparsedBody = handle_reponse_idk(request, query_string)
             body = unparsedBody.encode()
             return raw_response("text/plain", body)
@@ -99,53 +96,74 @@ def make_response(request):
             unparsedBody = getAllMessages(request)
             body = unparsedBody.encode()
             return raw_response("text/plain", body)
-        #if not found
+        case "/api/stream":
+            # Pass the socket and address correctly for SSE
+            handle_stream_request(ss, addr, message_list)
+            return None # Important: Signal that response was already handled
+        case "/api/sendMessage":
+            unparsedBody = handle_send_message(message_list, request)
+            body = unparsedBody.encode()
+            return raw_response("text/plain", body)
         case _:
             body = b"404 Not Found"
             return raw_response("text/plain", body)
 
+def receive_full_request(ss):
+    data = b""
+    while True:
+        chunk = ss.recv(4096)
+        if not chunk:
+            break
+        data += chunk
+        
+        # Check if we have headers
+        if b"\r\n\r\n" in data:
+            headers_part, body_part = data.split(b"\r\n\r\n", 1)
+            content_length = 0
+            
+            # Try to find Content-Length in headers
+            for line in headers_part.split(b"\r\n"):
+                if line.lower().startswith(b"content-length:"):
+                    try:
+                        content_length = int(line.split(b":")[1].strip())
+                    except ValueError:
+                        pass
+            
+            # If we have the full body, stop reading
+            if len(body_part) >= content_length:
+                return data.decode('utf-8')
+    
+    return data.decode('utf-8') if data else None
+
 #------------------------------------MAIN------------------------------------
 def connection():
-
-    #We declare a while true loop so it doesnt crash after exception, and works indefinitely
     while True:
         try:
-            #Here we accept the connection and wrap it in ssl context, making it TLS
             conn, addr = s.accept()
-            print(GREEN + f"Connection from {addr}")
             with context.wrap_socket(conn, server_side=True) as ss:
-                #here we recieve max 50000 bytes and print it
-                data = ss.recv(50000).decode('utf-8')
-                print(YELLOW + "-------------------------- START OF REQUEST -----------------------")
-                print(BLUE + data)
-                print(YELLOW + "-------------------------- END OF REQUEST -----------------------")
-
-                #here we pass the whole request into make_response(), which returns the response duh >w<
-                response = make_response(data)
-
-                #for the console to be at least readable, we dont print the whole body, only the length of it
-                headers, body_bin = response.split(b"\r\n\r\n", 1)
+                data = receive_full_request(ss)
                 
-                #here we print the response
-                print("\r")
-                print("\r")
-                print(YELLOW + "-------------------------- START OF RESPONSE -----------------------")
-                print(BLUE + headers.decode("utf-8")) # Tiskneme pouze hlavičky
-                print(BLUE + f"(Binární tělo o délce: {len(body_bin)} bajtů)")
-                print(YELLOW + "-------------------------- END OF RESPONSE -----------------------")
-                
-                #here we send and close connection
-                ss.sendall(response)
-                ss.close()
+                # Handling empty requests which can happen
+                if not data:
+                    continue
 
+                response = make_response(data, ss, addr)
+
+                if response:
+                    # Parse headers for logging (simple split)
+                    headers, _ = response.split(b"\r\n\r\n", 1)
+                    first_header = headers.split(b"\r\n")[0].decode('utf-8')
+                    
+                    # Log successful response
+                    log_response(first_header, "unknown (binary)", len(response))
+                    
+                    ss.sendall(response)
+                
         except ssl.SSLError as e:
-            print(RED + f"SSL Error: {e}")
+            console.print(f"[bold red]SSL Error:[/] {e}")
             if "HTTP_REQUEST" in str(e):
-                print(YELLOW + "HINT: It looks like you're trying to access the server via HTTP.")
-                print(YELLOW + "      Please use HTTPS instead: https://localhost:8443")
+                console.print("[yellow]Hint:[/] Use HTTPS -> https://localhost:8443")
         except Exception as e:
-            #end of try loop
-            print(RED + f"{e}")
+            console.print(f"[bold red]Error:[/] {e}")
 
-#here we start the connection loop
 connection()

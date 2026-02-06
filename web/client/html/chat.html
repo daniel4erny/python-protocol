@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="styles.css" rel="stylesheet" type="text/css">
+    <script src="main.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="flexContainer">
+        <div class="chatBox">
+            <div class="messages">
+                <p id="messages"></p>
+            </div>
+            <div class="inputContainer">
+                <button onclick="connectStream()">Connect to stream</button>
+                <input type="text" id="message" placeholder="Type your message here...">
+                <button onclick="sendMessage()">Send</button>
+                <span id="messageShower"></span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
