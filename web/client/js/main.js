@@ -1,16 +1,16 @@
 msgList = []
 
 //idk lol, just wanted to make react like use state 
-function useState(id, value){
+function useState(id, value) {
     elements = document.querySelectorAll(id)
-    for (i = 0; i < elements.length; i++){
+    for (i = 0; i < elements.length; i++) {
         elements[i].innerText = value
     }
 }
 
 //this will probably be deleted
 function testik() {
-    fetch("https://localhost:8443/api/idk", {
+    fetch("/api/idk", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -31,7 +31,7 @@ function testik() {
 function testik2() {
     const id = document.getElementById("idInput").value;
 
-    fetch(`https://localhost:8443/api/idk?id=${encodeURIComponent(id)}`, {
+    fetch(`/api/idk?id=${encodeURIComponent(id)}`, {
         method: "GET"
     })
         .then(response => response.text())
@@ -44,41 +44,41 @@ function testik2() {
 
 //fetching at endpoint "getAllMessages"
 function getMSGS() {
-    fetch(`https://localhost:8443/api/getAllMessages`, {
+    fetch(`/api/getAllMessages`, {
         method: "GET"
     })
-    .then(response => response.text())
-    .then(text => {
-        // text je Pythonový seznam ve stringu
-        // např. [(1, '{"text":"nevim bro"}', '2025-11-19 17:05:38'), ...]
-        
-        // regex pro jednotlivé trojice
-        const regex = /\(\s*(\d+),\s*'({.*?})',\s*'([^']*)'\s*\)/g;
-        let match;
-        msgList = [];
+        .then(response => response.text())
+        .then(text => {
+            // text je Pythonový seznam ve stringu
+            // např. [(1, '{"text":"nevim bro"}', '2025-11-19 17:05:38'), ...]
 
-        while ((match = regex.exec(text)) !== null) {
-            const id = parseInt(match[1]);
-            const jsonStr = match[2];
-            const timestamp = match[3];
+            // regex pro jednotlivé trojice
+            const regex = /\(\s*(\d+),\s*'({.*?})',\s*'([^']*)'\s*\)/g;
+            let match;
+            msgList = [];
 
-            try {
-                const obj = JSON.parse(jsonStr);
-                msgList.push({ id, ...obj, timestamp });
-            } catch (e) {
-                console.error("Chybný JSON:", jsonStr, e);
+            while ((match = regex.exec(text)) !== null) {
+                const id = parseInt(match[1]);
+                const jsonStr = match[2];
+                const timestamp = match[3];
+
+                try {
+                    const obj = JSON.parse(jsonStr);
+                    msgList.push({ id, ...obj, timestamp });
+                } catch (e) {
+                    console.error("Chybný JSON:", jsonStr, e);
+                }
             }
-        }
 
-        console.log(msgList[1]);
-        renderMSGS(msgList)
-    })
-    .catch(err => console.error(err));
+            console.log(msgList[1]);
+            renderMSGS(msgList)
+        })
+        .catch(err => console.error(err));
 }
 
-function renderMSGS(msgList){
+function renderMSGS(msgList) {
     const mother = document.getElementById("messageShower")
-    for (let i = 0; i < msgList.length; i++){
+    for (let i = 0; i < msgList.length; i++) {
         let div = document.createElement("div");
         div.className = "msgContainer";
         div.innerHTML = `

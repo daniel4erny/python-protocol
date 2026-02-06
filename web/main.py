@@ -3,6 +3,10 @@ import ssl
 import colorama
 from api.idk import handle_reponse_idk
 from api.getAllMessages import getAllMessages
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 #------------------------------------INIT------------------------------------
 
@@ -13,7 +17,7 @@ BLUE = colorama.Fore.LIGHTBLUE_EX
 YELLOW = colorama.Fore.YELLOW
 
 #host and port config
-hostname = "localhost"
+hostname = "0.0.0.0"
 port = 8443
 
 #paths needed for HTML site itself
@@ -24,8 +28,8 @@ javascript = r"client/js/main.js"
 ezop = r"client/images/ezop.jpg"
 
 #paths needed for tls crypting
-cert_path = r"cert.pem"
-key_path = r"key.pem"
+cert_path = os.getenv("CERT_PATH")
+key_path = os.getenv("KEY_PATH")
 
 #loading ssl context, we will wrap socket with this after
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -134,6 +138,11 @@ def connection():
                 ss.sendall(response)
                 ss.close()
 
+        except ssl.SSLError as e:
+            print(RED + f"SSL Error: {e}")
+            if "HTTP_REQUEST" in str(e):
+                print(YELLOW + "HINT: It looks like you're trying to access the server via HTTP.")
+                print(YELLOW + "      Please use HTTPS instead: https://localhost:8443")
         except Exception as e:
             #end of try loop
             print(RED + f"{e}")
